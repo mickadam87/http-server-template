@@ -1,0 +1,14 @@
+version: "3.7"
+
+services:
+  main:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: main
+    volumes:
+      - ./src:/usr/src/main/src
+    container_name: app
+    environment:
+    command: npm start
