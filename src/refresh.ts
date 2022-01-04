@@ -8,7 +8,8 @@ import {
 
 export default (request: Request, response: Response, next: NextFunction) => {
   const auth =
-    request.cookies.auth || request.headers.authorization.split("Bearer ")[0];
+    request.cookies.refresh ||
+    request.headers.authorization.split("Bearer ")[0];
   if (request.path === "/") {
     if (auth) {
       verifyAuthenticationToken(auth, next);
