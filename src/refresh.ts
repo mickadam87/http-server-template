@@ -7,33 +7,29 @@ import {
 } from "jsonwebtoken";
 
 export default (request: Request, response: Response, next: NextFunction) => {
-  const auth =
-    request.cookies.refresh ||
-    request.headers.authorization.split("Bearer ")[0];
+  const auth = request.headers.authorization.split("Bearer ")[0];
   if (request.path === "/") {
     if (auth) {
-      verifyAuthenticationToken(auth, next);
+      jwtVerify(
+        auth,
+        process.env.REFRESH_SECRET,
+        { complete: true },
+        (error: VerifyErrors, decoded: JwtPayload) => {
+          if (error) {
+            next(new Error(error.message));
+          }
+          const random = Math.random() * Date.now();
+          const token = jwtSign(random.toString(), process.env.ACCESS_SECRET, {
+            expiresIn: 1000 * 60 * 60 * 24,
+          });
+          response.cookie("auth", token);
+          next();
+        }
+      );
     }
-    const token = jwtSign("", process.env.ACCESS_SECRET, {
-      expiresIn: 1000 * 60 * 60 * 24,
-    });
-    response.cookie("auth", token);
-    next();
+
+    next(new Error("NO TOKEN"));
   } else {
-    verifyAuthenticationToken(auth, next);
+    next(new Error("WRONG WAY"));
   }
 };
-
-function verifyAuthenticationToken(token: string, next: NextFunction) {
-  jwtVerify(
-    token,
-    process.env.ACCESS_SECRET,
-    { complete: true },
-    (error: VerifyErrors, decoded: JwtPayload) => {
-      if (error) {
-        next(new Error(error.message));
-      }
-      next();
-    }
-  );
-}

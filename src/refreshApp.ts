@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
+import auth from "./refresh";
 
 let corsOptions: cors.CorsOptions = {
   origin: process.env.CORS_ORIGIN || "*",
@@ -12,6 +13,7 @@ let bodyParserOptions: bodyParser.OptionsUrlencoded = {
 };
 
 let app = express();
+app.use(auth);
 app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(express.json());

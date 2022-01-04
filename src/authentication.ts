@@ -13,10 +13,15 @@ export default (request: Request, response: Response, next: NextFunction) => {
     if (auth) {
       verifyAuthenticationToken(auth, next);
     }
-    const token = jwtSign("", process.env.ACCESS_SECRET, {
+    const random = Math.random() * Math.random() * Date.now();
+    const refresh = jwtSign(random.toString(), process.env.REFRESH_SECRET, {
       expiresIn: 1000 * 60 * 60 * 24,
     });
+    const token = jwtSign(random.toString(), process.env.ACCESS_SECRET, {
+      expiresIn: 1000 * 60 * 60,
+    });
     response.cookie("auth", token);
+    response.cookie("refresh", refresh);
     next();
   } else {
     verifyAuthenticationToken(auth, next);
