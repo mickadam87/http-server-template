@@ -1,4 +1,5 @@
 import https from "https";
+import http from "http";
 import app from "./refreshApp";
 
 let options: https.ServerOptions = {
@@ -6,4 +7,4 @@ let options: https.ServerOptions = {
   cert: process.env.HTTPS_CERT_PATH,
 };
 
-export default https.createServer(options, app);
+export default http.createServer(app);

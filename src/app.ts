@@ -13,10 +13,18 @@ let bodyParserOptions: bodyParser.OptionsUrlencoded = {
 };
 
 let app = express();
-app.use(auth);
-app.use(cors(corsOptions));
 app.use(cookieParser());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded(bodyParserOptions));
+app.use(auth);
+
+app.get("/", (req, res) => {
+  res.sendStatus(200);
+});
+
+app.get("/test", (req, res) => {
+  res.sendStatus(200);
+});
 
 export default app;

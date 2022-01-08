@@ -1,35 +1,36 @@
 import { NextFunction, Request, Response } from "express";
-import {
-  JwtPayload,
-  sign as jwtSign,
-  verify as jwtVerify,
-  VerifyErrors,
-} from "jsonwebtoken";
+import { JwtPayload, sign, verify, VerifyErrors } from "jsonwebtoken";
 
 export default (request: Request, response: Response, next: NextFunction) => {
-  const auth = request.headers.authorization.split("Bearer ")[0];
+  console.log(request.cookies);
+  const auth =
+    request.cookies.refresh ||
+    request.headers.authorization.split("Bearer ")[0];
   if (request.path === "/") {
     if (auth) {
-      jwtVerify(
+      verify(
         auth,
         process.env.REFRESH_SECRET,
-        { complete: true },
         (error: VerifyErrors, decoded: JwtPayload) => {
           if (error) {
-            next(new Error(error.message));
+            throw Error(error.message);
           }
           const random = Math.random() * Date.now();
-          const token = jwtSign(random.toString(), process.env.ACCESS_SECRET, {
-            expiresIn: 1000 * 60 * 60 * 24,
-          });
+          const token = sign(
+            { data: random.toString() },
+            process.env.ACCESS_SECRET,
+            {
+              expiresIn: "20s",
+            }
+          );
           response.cookie("auth", token);
           next();
         }
       );
+    } else {
+      throw Error("NO TOKEN");
     }
-
-    next(new Error("NO TOKEN"));
   } else {
-    next(new Error("WRONG WAY"));
+    throw Error("WRONG WAY");
   }
 };

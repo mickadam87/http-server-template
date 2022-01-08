@@ -1,42 +1,45 @@
 import { NextFunction, Request, Response } from "express";
-import {
-  JwtPayload,
-  sign as jwtSign,
-  verify as jwtVerify,
-  VerifyErrors,
-} from "jsonwebtoken";
+import { JwtPayload, sign, verify, VerifyErrors } from "jsonwebtoken";
 
 export default (request: Request, response: Response, next: NextFunction) => {
-  const auth =
-    request.cookies.auth || request.headers.authorization.split("Bearer ")[0];
-  if (request.path === "/") {
-    if (auth) {
+  try {
+    const auth = request.cookies.auth || undefined;
+    if (request.path === "/") {
+      if (auth) {
+        verifyAuthenticationToken(auth, next);
+      } else {
+        const random = Math.random() * Math.random() * Date.now();
+        const refresh = sign(
+          { data: random.toString() },
+          process.env.REFRESH_SECRET
+        );
+        const token = sign(
+          { data: random.toString() },
+          process.env.ACCESS_SECRET,
+          { expiresIn: 30 }
+        );
+        response.cookie("auth", token);
+        response.cookie("refresh", refresh);
+        next();
+      }
+    } else {
       verifyAuthenticationToken(auth, next);
     }
-    const random = Math.random() * Math.random() * Date.now();
-    const refresh = jwtSign(random.toString(), process.env.REFRESH_SECRET, {
-      expiresIn: 1000 * 60 * 60 * 24,
-    });
-    const token = jwtSign(random.toString(), process.env.ACCESS_SECRET, {
-      expiresIn: 1000 * 60 * 60,
-    });
-    response.cookie("auth", token);
-    response.cookie("refresh", refresh);
-    next();
-  } else {
-    verifyAuthenticationToken(auth, next);
+  } catch (error) {
+    response.json({ error: error.message });
   }
 };
 
 function verifyAuthenticationToken(token: string, next: NextFunction) {
-  jwtVerify(
+  verify(
     token,
     process.env.ACCESS_SECRET,
-    { complete: true },
-    (error: VerifyErrors, decoded: JwtPayload) => {
+    (error: Error, decoded: JwtPayload) => {
       if (error) {
-        next(new Error(error.message));
+        throw Error(error.message);
       }
+      const date = Math.round(Date.now() / 1000);
+      const val = (date - decoded.exp) / 60 / 60 / 1000;
       next();
     }
   );
