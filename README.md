@@ -15,3 +15,17 @@ Docker-compose:
 - docker-compose up -b
 - docker-compose stop
 - docker-compose rm
+
+# ENVIRONMENT VARIABLES
+
+Before run the app, you need to add a .env file with follwing variables:
+
+- HTTPS_REFRESH_KEY_PATH
+- HTTPS_REFRESH_CERT_PATH
+- HTTPS_KEY_PATH
+- HTTPS_CERT_PATH
+- CORS_ORIGIN
+- REFRESH_SECRET
+- ACCESS_SECRET
+- HTTPS_PORT
+- REFRESH_PORT
