@@ -7,4 +7,6 @@ let options: https.ServerOptions = {
   cert: process.env.HTTPS_CERT_PATH,
 };
 
-export default http.createServer(app);
+export const server = http.createServer(app);
+
+export const secureServer = https.createServer(options, app);
